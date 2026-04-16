@@ -1,0 +1,13 @@
+[build]
+  publish = "public"
+  functions = "netlify/functions"
+
+[dev]
+  functions = "netlify/functions"
+  port = 8888
+
+[[redirects]]
+  from = "/send-quote"
+  to = "/.netlify/functions/send-quote"
+  status = 200
+  methods = ["POST"]
