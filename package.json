@@ -4,8 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "nodemon server.js",
+    "dev": "netlify dev",
     "start": "node server.js",
+    "build": "echo \"No build required\"",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -19,6 +20,7 @@
     "nodemailer": "^8.0.5"
   },
   "devDependencies": {
-    "nodemon": "^3.1.14"
+    "nodemon": "^3.1.14",
+    "netlify-cli": "^17.21.0"
   }
 }
