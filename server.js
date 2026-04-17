@@ -3,8 +3,8 @@ const nodemailer = require('nodemailer');
 const cors = require('cors');
 require('dotenv').config();
 
-// Node 18+ has fetch built-in
-// For older Node: npm install node-fetch
+// Node 18+ has fetch built-in. If older, install node-fetch
+// const fetch = require('node-fetch');
 
 const app = express();
 
@@ -41,7 +41,7 @@ transporter.verify((error) => {
 });
 
 /* ================================
-   IMAGE FALLBACK
+   IMAGE FALLBACK CONFIG
 ================================ */
 const FALLBACK_IMAGE =
   'https://via.placeholder.com/100x100?text=No+Image';
@@ -59,7 +59,7 @@ function escapeHtml(value) {
 }
 
 /* ================================
-   VALIDATE IMAGE
+   VALIDATE IMAGE (IMPORTANT)
 ================================ */
 async function getSafeImage(imageUrl) {
   if (!imageUrl) return FALLBACK_IMAGE;
@@ -71,14 +71,18 @@ async function getSafeImage(imageUrl) {
   try {
     const res = await fetch(finalUrl, { method: 'HEAD' });
 
-    return res.ok ? finalUrl : FALLBACK_IMAGE;
-  } catch {
+    if (res.ok) {
+      return finalUrl;
+    } else {
+      return FALLBACK_IMAGE;
+    }
+  } catch (err) {
     return FALLBACK_IMAGE;
   }
 }
 
 /* ================================
-   TEMPLATE (FULL WIDTH STYLE)
+   HTML TEMPLATE (MODERN UI)
 ================================ */
 async function buildQuoteHtml({
   customerName,
@@ -109,14 +113,15 @@ async function buildQuoteHtml({
       return `
         <tr>
           <td style="padding:12px 0;">
-            <table width="100%" style="background:#ffffff;
-              border-radius:16px;border:1px solid #e5e7eb;">
+            <table style="width:100%;background:#ffffff;
+              border-radius:18px;border:1px solid #e5e7eb;
+              box-shadow:0 10px 25px rgba(0,0,0,0.05);">
               
               <tr>
                 <td style="width:120px;padding:16px;">
                   <img src="${image}" 
                     style="width:100px;height:100px;
-                    object-fit:cover;border-radius:10px;
+                    object-fit:cover;border-radius:12px;
                     border:1px solid #eee;" />
                 </td>
 
@@ -178,81 +183,83 @@ async function buildQuoteHtml({
     : 'No notes provided';
 
   return `
-<div style="margin:0;padding:0;background:#f1f5f9;width:100%;">
-  
-  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;background:#f1f5f9;">
-    
-    <!-- HEADER -->
-    <tr>
-      <td style="background:linear-gradient(135deg,#6366f1,#06b6d4);padding:40px 20px;text-align:center;">
-        <div style="font-size:28px;font-weight:800;color:white;">
-          🚀 New Quote Request
-        </div>
-        <div style="color:#e0f2fe;margin-top:8px;">
-          ARIQAI Foods Customer Inquiry
-        </div>
-      </td>
-    </tr>
+  <div style="background:#f1f5f9;padding:30px;font-family:Arial;">
+    <table style="max-width:720px;margin:auto;background:white;
+      border-radius:20px;overflow:hidden;
+      box-shadow:0 20px 40px rgba(0,0,0,0.08);">
 
-    <!-- CONTENT -->
-    <tr>
-      <td style="padding:30px 10px;">
-        
-        <table width="100%" style="max-width:1000px;margin:auto;background:#ffffff;border-radius:16px;overflow:hidden;">
+      <!-- HEADER -->
+      <tr>
+        <td style="background:linear-gradient(135deg,#6366f1,#06b6d4);
+          padding:30px;color:white;">
           
-          <!-- CUSTOMER -->
-          <tr>
-            <td style="padding:30px;">
-              <h2>👤 Customer Details</h2>
+          <div style="font-size:26px;font-weight:800;">
+            🚀 New Quote Request
+          </div>
 
-              <table width="100%">
-                <tr><td><b>Name:</b></td><td>${escapeHtml(customerName || '-')}</td></tr>
-                <tr><td><b>Email:</b></td><td>${escapeHtml(customerEmail)}</td></tr>
-                <tr><td><b>Phone:</b></td><td>${escapeHtml(customerPhone || '-')}</td></tr>
-                <tr><td><b>Company:</b></td><td>${escapeHtml(company || '-')}</td></tr>
-              </table>
-            </td>
-          </tr>
+          <div style="margin-top:6px;font-size:14px;color:#e0f2fe;">
+            ARIQAI Foods Customer Inquiry
+          </div>
+        </td>
+      </tr>
 
-          <!-- PRODUCTS -->
-          <tr>
-            <td style="padding:30px;background:#f9fafb;">
-              <h2>🛒 Requested Products</h2>
-              <table width="100%">
-                ${productCards || '<tr><td>No products</td></tr>'}
-              </table>
-            </td>
-          </tr>
+      <!-- CUSTOMER -->
+      <tr>
+        <td style="padding:24px;">
+          <div style="font-size:18px;font-weight:700;margin-bottom:12px;">
+            👤 Customer Details
+          </div>
 
-          <!-- NOTES -->
-          <tr>
-            <td style="padding:30px;">
-              <h2>📝 Notes</h2>
-              <div style="background:#f3f4f6;padding:20px;border-radius:12px;">
-                ${notesHtml}
-              </div>
-            </td>
-          </tr>
+          <table style="width:100%;font-size:14px;">
+            <tr><td><b>Name:</b></td><td>${escapeHtml(customerName || '-')}</td></tr>
+            <tr><td><b>Email:</b></td><td>${escapeHtml(customerEmail)}</td></tr>
+            <tr><td><b>Phone:</b></td><td>${escapeHtml(customerPhone || '-')}</td></tr>
+            <tr><td><b>Company:</b></td><td>${escapeHtml(company || '-')}</td></tr>
+          </table>
+        </td>
+      </tr>
 
-        </table>
+      <!-- PRODUCTS -->
+      <tr>
+        <td style="padding:24px;background:#f9fafb;">
+          <div style="font-size:18px;font-weight:700;margin-bottom:12px;">
+            🛒 Requested Products
+          </div>
 
-      </td>
-    </tr>
+          <table style="width:100%;">
+            ${productCards || '<tr><td>No products</td></tr>'}
+          </table>
+        </td>
+      </tr>
 
-    <!-- FOOTER -->
-    <tr>
-      <td style="text-align:center;padding:20px;font-size:12px;color:#9ca3af;">
-        © ${new Date().getFullYear()} ARIQAI Foods
-      </td>
-    </tr>
+      <!-- NOTES -->
+      <tr>
+        <td style="padding:24px;">
+          <div style="font-size:18px;font-weight:700;margin-bottom:10px;">
+            📝 Notes
+          </div>
 
-  </table>
-</div>
-`;
+          <div style="background:#f3f4f6;padding:16px;border-radius:12px;">
+            ${notesHtml}
+          </div>
+        </td>
+      </tr>
+
+      <!-- FOOTER -->
+      <tr>
+        <td style="padding:20px;text-align:center;
+          font-size:12px;color:#9ca3af;">
+          © ${new Date().getFullYear()} ARIQAI Foods
+        </td>
+      </tr>
+
+    </table>
+  </div>
+  `;
 }
 
 /* ================================
-   API
+   API ROUTE
 ================================ */
 app.post('/send-quote', async (req, res) => {
   try {
@@ -266,10 +273,9 @@ app.post('/send-quote', async (req, res) => {
     } = req.body;
 
     if (!customerEmail) {
-      return res.status(400).json({
-        success: false,
-        message: 'customerEmail required',
-      });
+      return res
+        .status(400)
+        .json({ success: false, message: 'customerEmail required' });
     }
 
     const html = await buildQuoteHtml({
@@ -285,7 +291,8 @@ app.post('/send-quote', async (req, res) => {
       from: `"ARIQAI Foods" <${process.env.EMAIL_USER}>`,
       to: process.env.QUOTE_RECEIVER || process.env.EMAIL_USER,
       replyTo: customerEmail,
-      subject: `New Quote Request from ${customerName || 'Customer'}`,
+      subject: `New Quote Request from ${customerName || 'Customer'
+        }`,
       html,
     };
 
@@ -306,7 +313,7 @@ app.post('/send-quote', async (req, res) => {
 });
 
 /* ================================
-   SERVER
+   SERVER START
 ================================ */
 const port = process.env.PORT || 5000;
 
