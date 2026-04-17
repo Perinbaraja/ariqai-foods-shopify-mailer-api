@@ -7,7 +7,8 @@
     "dev": "netlify dev",
     "start": "node server.js",
     "build": "echo \"No build required\"",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "raja": "nodemon server.js"
   },
   "keywords": [],
   "author": "",

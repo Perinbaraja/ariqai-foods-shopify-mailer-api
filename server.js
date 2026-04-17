@@ -3,9 +3,6 @@ const nodemailer = require('nodemailer');
 const cors = require('cors');
 require('dotenv').config();
 
-// Node 18+ has fetch built-in. If older, install node-fetch
-// const fetch = require('node-fetch');
-
 const app = express();
 
 app.use(cors());
@@ -28,7 +25,7 @@ const transporter = nodemailer.createTransport({
   secure: false,
   auth: {
     user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS, // Gmail App Password
+    pass: process.env.EMAIL_PASS,
   },
 });
 
@@ -41,7 +38,7 @@ transporter.verify((error) => {
 });
 
 /* ================================
-   IMAGE FALLBACK CONFIG
+   IMAGE FALLBACK
 ================================ */
 const FALLBACK_IMAGE =
   'https://via.placeholder.com/100x100?text=No+Image';
@@ -58,9 +55,6 @@ function escapeHtml(value) {
     .replace(/'/g, '&#39;');
 }
 
-/* ================================
-   VALIDATE IMAGE (IMPORTANT)
-================================ */
 async function getSafeImage(imageUrl) {
   if (!imageUrl) return FALLBACK_IMAGE;
 
@@ -70,19 +64,14 @@ async function getSafeImage(imageUrl) {
 
   try {
     const res = await fetch(finalUrl, { method: 'HEAD' });
-
-    if (res.ok) {
-      return finalUrl;
-    } else {
-      return FALLBACK_IMAGE;
-    }
-  } catch (err) {
+    return res.ok ? finalUrl : FALLBACK_IMAGE;
+  } catch {
     return FALLBACK_IMAGE;
   }
 }
 
 /* ================================
-   HTML TEMPLATE (MODERN UI)
+   TEMPLATE (PERFECT WIDTH)
 ================================ */
 async function buildQuoteHtml({
   customerName,
@@ -111,68 +100,92 @@ async function buildQuoteHtml({
       const image = await getSafeImage(rawImage);
 
       return `
-        <tr>
-          <td style="padding:12px 0;">
-            <table style="width:100%;background:#ffffff;
-              border-radius:18px;border:1px solid #e5e7eb;
-              box-shadow:0 10px 25px rgba(0,0,0,0.05);">
-              
-              <tr>
-                <td style="width:120px;padding:16px;">
-                  <img src="${image}" 
-                    style="width:100px;height:100px;
-                    object-fit:cover;border-radius:12px;
-                    border:1px solid #eee;" />
-                </td>
+<tr>
+  <td style="padding:10px 0;">
+    <table width="100%" style="border:1px solid #e5e7eb;border-radius:12px;background:#fff;">
+      <tr>
+        
+        <!-- IMAGE -->
+        <td style="width:90px;padding:12px;">
+          <img src="${image}" 
+            style="width:80px;height:80px;
+            object-fit:cover;border-radius:10px;
+            border:1px solid #eee;" />
+        </td>
 
-                <td style="padding:16px;">
-                  <div style="font-size:12px;color:#9ca3af;font-weight:600;">
-                    PRODUCT ${index + 1}
-                  </div>
+        <!-- DETAILS -->
+        <td style="padding:12px;">
+          
+          <div style="font-size:11px;color:#9ca3af;font-weight:600;">
+            PRODUCT ${index + 1}
+          </div>
 
-                  <div style="font-size:18px;font-weight:700;
-                    color:#111827;margin:6px 0;">
-                    ${escapeHtml(productName)}
-                  </div>
+          <div style="font-size:16px;font-weight:700;color:#111;margin:4px 0 8px;">
+            ${escapeHtml(productName)}
+          </div>
 
-                  <div style="margin-top:8px;">
-                    ${variant
-          ? `<span style="background:#eef2ff;color:#3730a3;
-                          padding:6px 10px;border-radius:999px;
-                          font-size:12px;margin-right:6px;">
-                          ${escapeHtml(variant)}
-                        </span>`
+          <!-- BADGES -->
+          <div style="margin-top:6px;">
+            
+            ${variant
+          ? `<span style="
+                    display:inline-block;
+                    background:#f3e8ff;
+                    color:#7c3aed;
+                    padding:5px 10px;
+                    border-radius:999px;
+                    font-size:11px;
+                    font-weight:600;
+                    margin-right:6px;
+                  ">
+                    ${escapeHtml(variant)}
+                  </span>`
           : ''
         }
 
-                    ${sku
-          ? `<span style="background:#f1f5f9;color:#334155;
-                          padding:6px 10px;border-radius:999px;
-                          font-size:12px;margin-right:6px;">
-                          SKU: ${escapeHtml(sku)}
-                        </span>`
+            ${sku
+          ? `<span style="
+                    display:inline-block;
+                    background:#f1f5f9;
+                    color:#334155;
+                    padding:5px 10px;
+                    border-radius:999px;
+                    font-size:11px;
+                    font-weight:600;
+                    margin-right:6px;
+                  ">
+                    SKU: ${escapeHtml(sku)}
+                  </span>`
           : ''
         }
 
-                    <span style="background:#ecfeff;color:#0e7490;
-                      padding:6px 10px;border-radius:999px;
-                      font-size:12px;font-weight:700;">
-                      Qty: ${escapeHtml(quantity)}
-                    </span>
-                  </div>
+            <span style="
+              display:inline-block;
+              background:#dcfce7;
+              color:#166534;
+              padding:5px 10px;
+              border-radius:999px;
+              font-size:11px;
+              font-weight:700;
+            ">
+              Qty: ${escapeHtml(quantity)}
+            </span>
 
-                  <div style="margin-top:6px;font-size:11px;">
-                    <a href="${image}" style="color:#2563eb;">
-                      View Image
-                    </a>
-                  </div>
+          </div>
 
-                </td>
-              </tr>
-            </table>
-          </td>
-        </tr>
-      `;
+          <!-- LINK -->
+          <div style="margin-top:6px;">
+            <a href="${image}" style="font-size:11px;color:#2563eb;text-decoration:none;">
+              View Image
+            </a>
+          </div>
+
+        </td>
+      </tr>
+    </table>
+  </td>
+</tr>
+`;
     })
   );
 
@@ -183,83 +196,82 @@ async function buildQuoteHtml({
     : 'No notes provided';
 
   return `
-  <div style="background:#f1f5f9;padding:30px;font-family:Arial;">
-    <table style="max-width:720px;margin:auto;background:white;
-      border-radius:20px;overflow:hidden;
-      box-shadow:0 20px 40px rgba(0,0,0,0.08);">
-
-      <!-- HEADER -->
-      <tr>
-        <td style="background:linear-gradient(135deg,#6366f1,#06b6d4);
-          padding:30px;color:white;">
+<div style="background:#f4f6f8;padding:20px 10px;font-family:Arial;">
+  
+  <table width="100%" cellpadding="0" cellspacing="0">
+    <tr>
+      <td align="center">
+        
+        <!-- MAIN -->
+        <table width="100%" style="max-width:640px;background:#ffffff;border-radius:12px;overflow:hidden;">
           
-          <div style="font-size:26px;font-weight:800;">
-            🚀 New Quote Request
-          </div>
+          <!-- HEADER -->
+          <tr>
+            <td style="background:linear-gradient(135deg,#6366f1,#06b6d4);
+              padding:24px;text-align:center;color:#fff;">
+              
+              <div style="font-size:20px;font-weight:700;">
+                🚀 New Quote Request
+              </div>
 
-          <div style="margin-top:6px;font-size:14px;color:#e0f2fe;">
-            ARIQAI Foods Customer Inquiry
-          </div>
-        </td>
-      </tr>
+              <div style="font-size:12px;margin-top:4px;color:#e0f2fe;">
+                ARIQAI Foods Customer Inquiry
+              </div>
+            </td>
+          </tr>
 
-      <!-- CUSTOMER -->
-      <tr>
-        <td style="padding:24px;">
-          <div style="font-size:18px;font-weight:700;margin-bottom:12px;">
-            👤 Customer Details
-          </div>
+          <!-- CUSTOMER -->
+          <tr>
+            <td style="padding:20px;">
+              <b>👤 Customer Details</b><br><br>
 
-          <table style="width:100%;font-size:14px;">
-            <tr><td><b>Name:</b></td><td>${escapeHtml(customerName || '-')}</td></tr>
-            <tr><td><b>Email:</b></td><td>${escapeHtml(customerEmail)}</td></tr>
-            <tr><td><b>Phone:</b></td><td>${escapeHtml(customerPhone || '-')}</td></tr>
-            <tr><td><b>Company:</b></td><td>${escapeHtml(company || '-')}</td></tr>
-          </table>
-        </td>
-      </tr>
+              Name: ${escapeHtml(customerName || '-')}<br>
+              Email: ${escapeHtml(customerEmail)}<br>
+              Phone: ${escapeHtml(customerPhone || '-')}<br>
+              Company: ${escapeHtml(company || '-')}
+            </td>
+          </tr>
 
-      <!-- PRODUCTS -->
-      <tr>
-        <td style="padding:24px;background:#f9fafb;">
-          <div style="font-size:18px;font-weight:700;margin-bottom:12px;">
-            🛒 Requested Products
-          </div>
+          <!-- PRODUCTS -->
+          <tr>
+            <td style="padding:20px;background:#fafafa;">
+              <b>🛒 Requested Products</b><br><br>
 
-          <table style="width:100%;">
-            ${productCards || '<tr><td>No products</td></tr>'}
-          </table>
-        </td>
-      </tr>
+              <table width="100%">
+                ${productCards || '<tr><td>No products</td></tr>'}
+              </table>
+            </td>
+          </tr>
 
-      <!-- NOTES -->
-      <tr>
-        <td style="padding:24px;">
-          <div style="font-size:18px;font-weight:700;margin-bottom:10px;">
-            📝 Notes
-          </div>
+          <!-- NOTES -->
+          <tr>
+            <td style="padding:20px;">
+              <b>📝 Notes</b><br><br>
 
-          <div style="background:#f3f4f6;padding:16px;border-radius:12px;">
-            ${notesHtml}
-          </div>
-        </td>
-      </tr>
+              <div style="background:#f1f5f9;padding:12px;border-radius:8px;">
+                ${notesHtml}
+              </div>
+            </td>
+          </tr>
 
-      <!-- FOOTER -->
-      <tr>
-        <td style="padding:20px;text-align:center;
-          font-size:12px;color:#9ca3af;">
-          © ${new Date().getFullYear()} ARIQAI Foods
-        </td>
-      </tr>
+          <!-- FOOTER -->
+          <tr>
+            <td style="text-align:center;padding:14px;font-size:12px;color:#999;">
+              © ${new Date().getFullYear()} ARIQAI Foods
+            </td>
+          </tr>
 
-    </table>
-  </div>
-  `;
+        </table>
+
+      </td>
+    </tr>
+  </table>
+</div>
+`;
 }
 
 /* ================================
-   API ROUTE
+   API
 ================================ */
 app.post('/send-quote', async (req, res) => {
   try {
@@ -273,9 +285,10 @@ app.post('/send-quote', async (req, res) => {
     } = req.body;
 
     if (!customerEmail) {
-      return res
-        .status(400)
-        .json({ success: false, message: 'customerEmail required' });
+      return res.status(400).json({
+        success: false,
+        message: 'customerEmail required',
+      });
     }
 
     const html = await buildQuoteHtml({
@@ -291,21 +304,20 @@ app.post('/send-quote', async (req, res) => {
       from: `"ARIQAI Foods" <${process.env.EMAIL_USER}>`,
       to: process.env.QUOTE_RECEIVER || process.env.EMAIL_USER,
       replyTo: customerEmail,
-      subject: `New Quote Request from ${customerName || 'Customer'
-        }`,
+      subject: `New Quote Request from ${customerName || 'Customer'}`,
       html,
     };
 
     const info = await transporter.sendMail(mailOptions);
 
-    return res.json({
+    res.json({
       success: true,
       message: 'Email sent',
       info,
     });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({
+    res.status(500).json({
       success: false,
       message: error.message,
     });
@@ -313,7 +325,7 @@ app.post('/send-quote', async (req, res) => {
 });
 
 /* ================================
-   SERVER START
+   SERVER
 ================================ */
 const port = process.env.PORT || 5000;
 
